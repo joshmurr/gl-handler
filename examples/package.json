@@ -1,0 +1,18 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild point-sphere.ts --bundle --minify --outfile=built/point-sphere.js --sourcemap"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gl-handler": "^1.0.0",
+    "gl-matrix": "^3.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.10"
+  }
+}
