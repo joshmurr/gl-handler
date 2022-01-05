@@ -32,14 +32,21 @@ interface Camera {
 export default class GL_Handler {
   private _gl: WebGL2RenderingContext
 
-  public canvas(width: number, height: number, premultAlpha = false, targetEl: HTMLElement | null = null) {
+  public canvas(
+    width: number,
+    height: number,
+    opts: { [key: string]: string | boolean },
+    targetEl: HTMLElement | null = null,
+  ) {
     const canvas = document.createElement('canvas')
     canvas.width = width
     canvas.height = height
     const target = targetEl || document.body
     target.prepend(canvas)
     this._gl = canvas.getContext('webgl2', {
-      premultipliedAlpha: premultAlpha,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: true,
+      ...opts
     })
 
     if (!this._gl) {
