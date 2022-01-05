@@ -1,6 +1,6 @@
 {
   "name": "gl-handler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Another lightweight wrapper library for WebGL.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
