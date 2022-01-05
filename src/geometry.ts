@@ -58,7 +58,7 @@ export default abstract class Geometry {
     this.gl = gl
   }
 
-  protected abstract linkProgram(_program: WebGLProgram): void
+  protected abstract linkProgram(_program: WebGLProgram, _renderProgram?: WebGLProgram): void
 
   public setupVAO(_buffers: Array<BufferDesc>, _VAO: WebGLVertexArrayObject) {
     this.gl.bindVertexArray(_VAO)
