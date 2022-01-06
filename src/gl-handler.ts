@@ -326,7 +326,13 @@ export default class GL_Handler {
   }
 
   private filterLoader: FilterMap = {
-    NEAREST: (gl: WebGL2RenderingContext): void => gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST),
-    LINEAR: (gl: WebGL2RenderingContext): void => gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR),
+    NEAREST: (gl: WebGL2RenderingContext): void => {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    },
+    LINEAR: (gl: WebGL2RenderingContext): void => {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    },
   }
 }
