@@ -1,35 +1,12 @@
 import { vec3, mat4 } from 'gl-matrix'
 
-interface AttribDesc {
-  location: number // Attrib loc
-  num_components: number
-  type: number // GLENUM
-  size: number
-  divisor?: number
-}
+import { AttribDesc, AllAttribDesc, BufferDesc, RotationDesc, UniformDesc } from './types'
 
-interface AllAttribDesc {
-  i_Position?: AttribDesc
-  i_Color?: AttribDesc
-  i_Uid?: AttribDesc
-}
-
-interface BufferDesc {
-  buffer_object: WebGLBuffer
-  stride: number
-  attributes: AllAttribDesc
-}
-
-interface UniformDesc<T> {
-  type: string
-  location: WebGLUniformLocation
-  value: T
-}
-
-interface RotationDesc {
-  speed: number
-  axis: [number, number, number]
-}
+//interface UniformDesc<T> {
+//type: string
+//location: WebGLUniformLocation
+//value: T
+//}
 
 export default abstract class Geometry {
   gl: WebGL2RenderingContext
