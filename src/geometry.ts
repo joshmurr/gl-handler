@@ -21,6 +21,7 @@ export default abstract class Geometry {
   _indices: number[]
   _normals: number[]
   _colors: number[]
+  _texCoords: number[]
   _buffers: Array<WebGLBuffer> = []
   _VAOs: Array<WebGLVertexArrayObject> = []
 
