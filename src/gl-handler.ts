@@ -1,5 +1,15 @@
 import { vec3, mat4 } from 'gl-matrix'
-import { UniformDescs, TypeInfo, Setter, Setters, TypeMap, TextureTypeMap, Camera } from './types'
+import {
+  FilterMap,
+  UniformDescs,
+  TypeInfo,
+  Setter,
+  Setters,
+  TypeMap,
+  TextureOpts,
+  TextureTypeMap,
+  Camera,
+} from './types'
 
 export default class GL_Handler {
   private _gl: WebGL2RenderingContext
@@ -124,13 +134,11 @@ export default class GL_Handler {
     }
   }
 
-  public createTexture(w: number, h: number, type: string, data: Uint8Array | Float32Array = null) {
+  public createTexture(w: number, h: number, { type, data = null, filter = 'NEAREST' }: TextureOpts) {
     const texture = this._gl.createTexture()
     this._gl.bindTexture(this._gl.TEXTURE_2D, texture)
     this.textureLoader[type](this._gl, w, h, data)
-    //this._gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    //this._gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR)
+    this.filterLoader[filter](this._gl)
     this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE)
     this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE)
 
@@ -315,5 +323,10 @@ export default class GL_Handler {
   private textureLoader: TextureTypeMap = {
     RGB:  (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB,  w, h, 0, gl.RGB,  gl.UNSIGNED_BYTE, data),
     RGBA: (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data)
+  }
+
+  private filterLoader: FilterMap = {
+    NEAREST: (gl: WebGL2RenderingContext): void => gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST),
+    LINEAR: (gl: WebGL2RenderingContext): void => gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR),
   }
 }
