@@ -2,12 +2,6 @@ import { vec3, mat4 } from 'gl-matrix'
 
 import { AttribDesc, AllAttribDesc, BufferDesc, RotationDesc, UniformDesc } from './types'
 
-//interface UniformDesc<T> {
-//type: string
-//location: WebGLUniformLocation
-//value: T
-//}
-
 export default abstract class Geometry {
   gl: WebGL2RenderingContext
 

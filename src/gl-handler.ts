@@ -1,33 +1,5 @@
 import { vec3, mat4 } from 'gl-matrix'
-
-type UniformDescs = {
-  [key: string]: number | number[] | mat4 | vec3 | WebGLTexture
-}
-
-interface TypeInfo {
-  constant: string
-  setterFn?: any
-}
-
-interface Setter extends TypeInfo {
-  location: WebGLUniformLocation | number
-  setter: any
-}
-
-type Setters = {
-  [key: string]: Setter
-}
-
-type TypeMap = { [key: number]: TypeInfo }
-type TextureTypeMap = {
-  [key: string]: (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array) => void
-}
-
-interface Camera {
-  pos?: vec3
-  up?: vec3
-  target?: vec3
-}
+import { UniformDescs, TypeInfo, Setter, Setters, TypeMap, TextureTypeMap, Camera } from './types'
 
 export default class GL_Handler {
   private _gl: WebGL2RenderingContext
@@ -46,7 +18,7 @@ export default class GL_Handler {
     this._gl = canvas.getContext('webgl2', {
       premultipliedAlpha: true,
       preserveDrawingBuffer: true,
-      ...opts
+      ...opts,
     })
 
     if (!this._gl) {
