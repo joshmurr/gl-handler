@@ -11,6 +11,7 @@ export interface AttribDesc {
 export interface AllAttribDesc {
   i_Position?: AttribDesc
   i_Color?: AttribDesc
+  i_Normal?: AttribDesc
   i_Uid?: AttribDesc
 }
 
