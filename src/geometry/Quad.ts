@@ -4,12 +4,12 @@ export default class Quad extends Geometry {
   constructor(gl: WebGL2RenderingContext) {
     super(gl)
     this._indexedGeometry = true
-    this._verts = [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0]
-    this._texCoords = [0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0]
+    this._verts = [-1, -1, 0, -1, 1, 0, 1, 1, 0, 1, -1, 0]
+    this._texCoords = [0.05, 0.05, 0.95, 0.05, 0.95, 0.95, 0.05, 0.95]
 
     this._normals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
     // For use with TRIANGLES
-    this._indices = [0, 1, 2, 0, 2, 3]
+    this._indices = [0, 2, 1, 0, 3, 2]
   }
 
   linkProgram(_program: WebGLShader) {
