@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild point-sphere.ts --bundle --minify --outfile=built/point-sphere.js --sourcemap"
+    "build": "esbuild ts/*.ts --bundle --minify --outdir=built --sourcemap",
+    "serve": "http-server"
   },
   "author": "",
   "license": "ISC",
