@@ -1,7 +1,9 @@
-import { GL_Handler, Geometry } from 'gl-handler'
+import { GL_Handler, Geometry, Types } from 'gl-handler'
 import { vec3, mat4 } from 'gl-matrix'
 
 export default class PointSphere extends Geometry {
+  _numPoints: number
+
   constructor(gl: WebGL2RenderingContext, _numPoints: number) {
     super(gl)
 
@@ -81,7 +83,7 @@ void main(){
 }`
 
 const G = new GL_Handler()
-const canvas = G.canvas(512, 512)
+G.canvas(512, 512)
 const gl = G.gl
 const pointsProgram = G.shaderProgram(vert, frag)
 
@@ -94,7 +96,7 @@ const points = new PointSphere(gl, 10000)
 points.linkProgram(pointsProgram)
 points.rotate = { speed: 0.0005, axis: [1, 1, 1] }
 
-const baseUniforms: UniformDescs = {
+const baseUniforms: Types.UniformDescs = {
   u_ModelMatrix: modelMat,
   u_ViewMatrix: viewMat,
   u_ProjectionMatrix: projMat,
@@ -108,7 +110,7 @@ gl.clearDepth(1.0)
 gl.enable(gl.CULL_FACE)
 gl.enable(gl.DEPTH_TEST)
 
-function draw(time) {
+function draw(time: number) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.clearColor(0.9, 0.9, 0.9, 1)
 
