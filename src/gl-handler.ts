@@ -1,15 +1,5 @@
 import { vec3, mat4 } from 'gl-matrix'
-import {
-  FilterMap,
-  UniformDescs,
-  TypeInfo,
-  Setter,
-  Setters,
-  TypeMap,
-  TextureOpts,
-  TextureTypeMap,
-  Camera,
-} from './types'
+import { FilterMap, UniformDescs, Setters, TypeMap, TextureOpts, TextureTypeMap, Camera } from './types'
 
 export default class GL_Handler {
   private _gl: WebGL2RenderingContext
@@ -17,7 +7,7 @@ export default class GL_Handler {
   public canvas(
     width: number,
     height: number,
-    opts: { [key: string]: string | boolean },
+    opts: { [key: string]: string | boolean } = {},
     targetEl: HTMLElement | null = null,
   ) {
     const canvas = document.createElement('canvas')
@@ -83,7 +73,7 @@ export default class GL_Handler {
       let name = uniformInfo.name
       // remove the array suffix.
       if (name.endsWith('[0]')) {
-        name = name.substr(0, name.length - 3)
+        name = name.substring(0, name.length - 3)
       }
       const location = this._gl.getUniformLocation(program, uniformInfo.name)
       // the uniform will have no location if it's in a uniform block
@@ -129,6 +119,7 @@ export default class GL_Handler {
   public setUniforms(setters: Setters, uniforms: UniformDescs): void {
     for (const name in uniforms) {
       const values = uniforms[name]
+      if (!setters[name]) continue // Uniform was not found in shader
       const { location, setter } = setters[name]
       setter(location, values)
     }
