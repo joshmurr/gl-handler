@@ -1,5 +1,6 @@
 import { vec3, mat4 } from 'gl-matrix'
 import { FilterMap, UniformDescs, Setters, TypeMap, TextureOpts, TextureTypeMap, Camera } from './types'
+import { constants } from './constants'
 
 export default class GL_Handler {
   private _gl: WebGL2RenderingContext
@@ -16,8 +17,8 @@ export default class GL_Handler {
     const target = targetEl || document.body
     target.prepend(canvas)
     this._gl = canvas.getContext('webgl2', {
-      premultipliedAlpha: true,
-      preserveDrawingBuffer: true,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: false,
       ...opts,
     })
 
@@ -216,6 +217,17 @@ export default class GL_Handler {
       gl.uniform1i(loc, unit)
       gl.activeTexture(gl.TEXTURE0 + unit)
       gl.bindTexture(gl.TEXTURE_2D, texture)
+    }
+  }
+
+  public initReadPixels(width: number, height: number) {
+    const format = this._gl.getParameter(this._gl.IMPLEMENTATION_COLOR_READ_FORMAT)
+    const type = this._gl.getParameter(this._gl.IMPLEMENTATION_COLOR_READ_TYPE)
+    const pixelSize = constants[format] === 'RGBA' ? 4 : 3
+    const pixels = new Uint8Array(width * height * pixelSize)
+    return () => {
+      this._gl.readPixels(0, 0, width, height, format, type, pixels)
+      return pixels
     }
   }
 
