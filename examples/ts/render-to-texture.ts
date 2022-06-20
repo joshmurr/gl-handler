@@ -21,10 +21,11 @@ void main(){
 const colourFrag = `#version 300 es
 precision mediump float;
 
+uniform vec2 u_Resolution;
 out vec4 OUTCOLOUR;
 
 void main(){
-    OUTCOLOUR = vec4(gl_FragCoord.xy / 64.0, 0.0, 1.0);
+    OUTCOLOUR = vec4(gl_FragCoord.xy / u_Resolution, 0.0, 1.0);
 }`
 
 const outputFrag = `#version 300 es
@@ -45,9 +46,7 @@ const gl = G.gl
 const program = G.shaderProgram(vert, colourFrag)
 const render = G.shaderProgram(vert, outputFrag)
 
-const camPos: [number, number, number] = [0, 0, 2.5]
-let viewMat = G.viewMat({ pos: vec3.fromValues(...camPos) })
-//let viewMat = G.viewMat()
+let baseViewMat = G.viewMat({ pos: vec3.fromValues(0, 0, 2) })
 const projMat = G.defaultProjMat()
 const modelMat = mat4.create()
 
@@ -65,8 +64,9 @@ gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 // UNIFORMS ---------------------------
 const baseUniforms: T.UniformDescs = {
   u_ModelMatrix: modelMat,
-  u_ViewMatrix: viewMat,
+  u_ViewMatrix: baseViewMat,
   u_ProjectionMatrix: projMat,
+  u_Resolution: [res.x, res.y],
 }
 const uniformSetters = G.getUniformSetters(program)
 
@@ -83,7 +83,7 @@ gl.clearDepth(1.0)
 gl.enable(gl.CULL_FACE)
 gl.enable(gl.DEPTH_TEST)
 
-function draw() {
+function draw(time: number) {
   gl.useProgram(program)
   gl.bindVertexArray(quad.VAO)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -97,7 +97,10 @@ function draw() {
   gl.useProgram(render)
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
-  G.setUniforms(renderSetters, renderUniforms)
+  G.setUniforms(renderSetters, {
+    ...renderUniforms,
+    u_ViewMatrix: G.viewMat({ pos: vec3.fromValues(Math.sin(time * 0.002) * 2, 1, 4) }),
+  })
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.drawElements(gl.TRIANGLES, quad.numIndices, gl.UNSIGNED_SHORT, 0)
 
@@ -105,7 +108,7 @@ function draw() {
   gl.bindBuffer(gl.ARRAY_BUFFER, null)
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
 
-  //requestAnimationFrame(draw)
+  requestAnimationFrame(draw)
 }
 
 requestAnimationFrame(draw)

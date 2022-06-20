@@ -4,8 +4,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 module.exports = {
   mode: 'development',
   entry: {
-    pointSphere: './ts/point-sphere.ts',
-    //scissor: './ts/scissor.ts',
+    //pointSphere: './ts/point-sphere.ts',
+    scissor: './ts/render-to-texture.ts',
   },
   devtool: 'inline-source-map',
   devServer: {
