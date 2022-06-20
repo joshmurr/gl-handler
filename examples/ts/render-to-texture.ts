@@ -1,4 +1,4 @@
-import { GL_Handler, Quad, Types as T } from 'gl-handler'
+import { GL_Handler, Quad, Types as T, constants } from 'gl-handler'
 import { vec3, mat4 } from 'gl-matrix'
 
 const vert = `#version 300 es
@@ -50,12 +50,14 @@ let baseViewMat = G.viewMat({ pos: vec3.fromValues(0, 0, 2) })
 const projMat = G.defaultProjMat()
 const modelMat = mat4.create()
 
-const quad = new Quad(gl)
-quad.linkProgram(program)
+const quadA = new Quad(gl)
+const quadB = new Quad(gl)
+quadA.linkProgram(program)
+quadB.linkProgram(render)
 
 const res = { x: 64, y: 64 }
 const renderTex = G.createTexture(res.x, res.y, {
-  type: 'RGB',
+  type: 'RGBA',
   filter: 'NEAREST',
 })
 const fbo = G.createFramebuffer(renderTex)
@@ -66,7 +68,6 @@ const baseUniforms: T.UniformDescs = {
   u_ModelMatrix: modelMat,
   u_ViewMatrix: baseViewMat,
   u_ProjectionMatrix: projMat,
-  u_Resolution: [res.x, res.y],
 }
 const uniformSetters = G.getUniformSetters(program)
 
@@ -79,30 +80,28 @@ const renderSetters = G.getUniformSetters(render)
 
 gl.useProgram(program)
 G.setUniforms(uniformSetters, baseUniforms)
-gl.clearDepth(1.0)
-gl.enable(gl.CULL_FACE)
-gl.enable(gl.DEPTH_TEST)
 
 function draw(time: number) {
   gl.useProgram(program)
-  gl.bindVertexArray(quad.VAO)
+  gl.bindVertexArray(quadA.VAO)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.clearColor(0.9, 0.9, 0.9, 1)
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo)
   gl.viewport(0, 0, res.x, res.y)
-  G.setUniforms(uniformSetters, baseUniforms)
-  gl.drawElements(gl.TRIANGLES, quad.numIndices, gl.UNSIGNED_SHORT, 0)
+  G.setUniforms(uniformSetters, { ...baseUniforms, u_Resolution: [res.x, res.y] })
+  gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
 
   gl.useProgram(render)
+  gl.bindVertexArray(quadB.VAO)
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
   G.setUniforms(renderSetters, {
     ...renderUniforms,
     u_ViewMatrix: G.viewMat({ pos: vec3.fromValues(Math.sin(time * 0.002) * 2, 1, 4) }),
   })
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-  gl.drawElements(gl.TRIANGLES, quad.numIndices, gl.UNSIGNED_SHORT, 0)
+  gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
 
   gl.bindVertexArray(null)
   gl.bindBuffer(gl.ARRAY_BUFFER, null)
