@@ -5,7 +5,7 @@ export default class Quad extends Geometry {
     super(gl)
     this._indexedGeometry = true
     this._verts = [-1, -1, 0, -1, 1, 0, 1, 1, 0, 1, -1, 0]
-    this._texCoords = [0.05, 0.05, 0.95, 0.05, 0.95, 0.95, 0.05, 0.95]
+    this._texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
 
     this._normals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
     // For use with TRIANGLES
