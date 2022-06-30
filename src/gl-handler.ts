@@ -131,13 +131,14 @@ export default class GL_Handler {
     this._gl.bindTexture(this._gl.TEXTURE_2D, texture)
     this.textureLoader[type](this._gl, w, h, data)
     this.filterLoader[filter](this._gl)
-    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE)
-    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE)
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT)
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.REPEAT)
 
     return texture
   }
 
   public createFramebuffer(tex: WebGLTexture): WebGLFramebuffer {
+    this._gl.bindTexture(this._gl.TEXTURE_2D, null)
     const fb = this._gl.createFramebuffer()
     this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, fb)
     this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, tex, 0)
@@ -324,8 +325,10 @@ export default class GL_Handler {
 
   //prettier-ignore
   private textureLoader: TextureTypeMap = {
-    RGB:  (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB,  w, h, 0, gl.RGB,  gl.UNSIGNED_BYTE, data),
-    RGBA: (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data)
+    RGB    : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB,  w, h, 0, gl.RGB,  gl.UNSIGNED_BYTE, data),
+    RGBA   : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data),
+    RGBA16F: (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.FLOAT, data),
+    RGBA32F: (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, data)
   }
 
   private filterLoader: FilterMap = {
