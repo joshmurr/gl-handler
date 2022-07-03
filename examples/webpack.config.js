@@ -5,7 +5,9 @@ module.exports = {
   mode: 'development',
   entry: {
     //pointSphere: './ts/point-sphere.ts',
-    scissor: './ts/render-to-texture.ts',
+    //renderToTexture: './ts/render-to-texture.ts',
+    //simpleFluid: './ts/simple-fluid.ts',
+    shaderToy: './ts/shaderToy.ts',
   },
   devtool: 'inline-source-map',
   devServer: {

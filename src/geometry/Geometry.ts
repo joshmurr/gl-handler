@@ -12,6 +12,7 @@ export default abstract class Geometry {
   _oscillate = false
 
   _verts: number[]
+  _numVertComponents: number
   _indices: number[]
   _normals: number[]
   _colors: number[]
@@ -75,7 +76,7 @@ export default abstract class Geometry {
   }
 
   public get numVertices() {
-    return this._verts.length / 3
+    return this._verts.length / this._numVertComponents || 3
   }
 
   public get verts() {
