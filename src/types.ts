@@ -61,6 +61,10 @@ export type FilterMap = {
   [key: string]: (gl: WebGL2RenderingContext) => void
 }
 
+export type WrapMap = {
+  [key: string]: (gl: WebGL2RenderingContext) => void
+}
+
 export interface Camera {
   pos?: vec3
   up?: vec3
@@ -71,4 +75,5 @@ export interface TextureOpts {
   type: string
   data?: Uint8Array | Float32Array | null
   filter?: string
+  wrap?: string
 }

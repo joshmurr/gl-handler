@@ -1,5 +1,5 @@
 import { vec3, mat4 } from 'gl-matrix'
-import { FilterMap, UniformDescs, Setters, TypeMap, TextureOpts, TextureTypeMap, Camera } from './types'
+import { FilterMap, UniformDescs, Setters, TypeMap, TextureOpts, TextureTypeMap, Camera, WrapMap } from './types'
 import { constants } from './constants'
 
 export default class GL_Handler {
@@ -126,13 +126,15 @@ export default class GL_Handler {
     }
   }
 
-  public createTexture(w: number, h: number, { type, data = null, filter = 'NEAREST' }: TextureOpts) {
+  public createTexture(w: number, h: number, { type, data = null, filter = 'NEAREST', wrap = 'REPEAT' }: TextureOpts) {
     const texture = this._gl.createTexture()
     this._gl.bindTexture(this._gl.TEXTURE_2D, texture)
+    /* Run texImage2D and load data */
     this.textureLoader[type](this._gl, w, h, data)
+    /* Set MIN/MAG filter stuff */
     this.filterLoader[filter](this._gl)
-    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT)
-    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.REPEAT)
+    /* Texture wrapping */
+    this.wrapLoader[wrap](this._gl)
 
     return texture
   }
@@ -339,6 +341,21 @@ export default class GL_Handler {
     LINEAR: (gl: WebGL2RenderingContext): void => {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    },
+  }
+
+  private wrapLoader: WrapMap = {
+    CLAMP_TO_EDGE: (gl: WebGL2RenderingContext): void => {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    },
+    REPEAT: (gl: WebGL2RenderingContext): void => {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+    },
+    MIRRORED_REPEAT: (gl: WebGL2RenderingContext): void => {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT)
     },
   }
 }
