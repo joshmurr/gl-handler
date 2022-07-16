@@ -86,3 +86,5 @@ export interface UBOOpts {
 }
 
 export type UBOUniformInfo = { [key: string]: { index: number; offset: number } }
+
+export type UBODesc = { uniforms: string[]; desc: UBOUniformInfo; buffer: WebGLBuffer }

@@ -10,6 +10,7 @@ import {
   WrapMap,
   UBOOpts,
   UBOUniformInfo,
+  UBODesc,
 } from './types'
 import { constants } from './constants'
 
@@ -142,7 +143,7 @@ export default class GL_Handler {
     }
   }
 
-  public createUBO({ program, name, uniforms, bindingPoint }: UBOOpts): (variableGetter: (i: number) => any) => void {
+  public createUBO({ program, name, uniforms, bindingPoint }: UBOOpts): UBODesc {
     let blockIndex = this._gl.getUniformBlockIndex(program, name)
     let blockSize = this._gl.getActiveUniformBlockParameter(program, blockIndex, this._gl.UNIFORM_BLOCK_DATA_SIZE)
 
@@ -164,15 +165,25 @@ export default class GL_Handler {
     })
     this._gl.uniformBlockBinding(program, blockIndex, bindingPoint)
 
-    const setter = (variableGetter: (i: number) => any) => {
-      this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboBuffer)
-      uniforms.forEach((name, i) => {
-        this._gl.bufferSubData(this._gl.UNIFORM_BUFFER, uboVariableInfo[name].offset, variableGetter(i), 0)
-      })
-      this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
-    }
+    //const setter = (variableGetter: (i: number) => any) => {
+    //this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboBuffer)
+    //uniforms.forEach((name, i) => {
+    //this._gl.bufferSubData(this._gl.UNIFORM_BUFFER, uboVariableInfo[name].offset, variableGetter(i), 0)
+    //})
+    //this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
+    //}
 
-    return setter
+    //return setter
+
+    return { uniforms, desc: uboVariableInfo, buffer: uboBuffer }
+  }
+
+  public setUBO(uboDesc: UBODesc, variableGetter: (i: number) => Float32Array) {
+    this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboDesc.buffer)
+    uboDesc.uniforms.forEach((name, i) => {
+      this._gl.bufferSubData(this._gl.UNIFORM_BUFFER, uboDesc.desc[name].offset, variableGetter(i), 0)
+    })
+    this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
   }
 
   public createTexture(w: number, h: number, { type, data = null, filter = 'NEAREST', wrap = 'REPEAT' }: TextureOpts) {
