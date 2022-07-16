@@ -77,3 +77,12 @@ export interface TextureOpts {
   filter?: string
   wrap?: string
 }
+
+export interface UBOOpts {
+  program: WebGLShader
+  name: string
+  uniforms: string[]
+  bindingPoint: number
+}
+
+export type UBOUniformInfo = { [key: string]: { index: number; offset: number } }

@@ -1,5 +1,16 @@
 import { vec3, mat4 } from 'gl-matrix'
-import { FilterMap, UniformDescs, Setters, TypeMap, TextureOpts, TextureTypeMap, Camera, WrapMap } from './types'
+import {
+  FilterMap,
+  UniformDescs,
+  Setters,
+  TypeMap,
+  TextureOpts,
+  TextureTypeMap,
+  Camera,
+  WrapMap,
+  UBOOpts,
+  UBOUniformInfo,
+} from './types'
 import { constants } from './constants'
 
 export default class GL_Handler {
@@ -77,7 +88,9 @@ export default class GL_Handler {
         name = name.substring(0, name.length - 3)
       }
       const location = this._gl.getUniformLocation(program, uniformInfo.name)
+
       // the uniform will have no location if it's in a uniform block
+      if (!location) continue
 
       const { constant, setterFn } = this.typeMap[uniformInfo.type]
 
@@ -103,6 +116,9 @@ export default class GL_Handler {
 
       const name = attribInfo.name
       const location = this._gl.getAttribLocation(program, attribInfo.name)
+
+      if (!location) continue
+
       const { constant, setterFn } = this.typeMap[attribInfo.type]
 
       const setter = setterFn(this._gl)
@@ -124,6 +140,39 @@ export default class GL_Handler {
       const { location, setter } = setters[name]
       setter(location, values)
     }
+  }
+
+  public createUBO({ program, name, uniforms, bindingPoint }: UBOOpts): (variableGetter: (i: number) => any) => void {
+    let blockIndex = this._gl.getUniformBlockIndex(program, name)
+    let blockSize = this._gl.getActiveUniformBlockParameter(program, blockIndex, this._gl.UNIFORM_BLOCK_DATA_SIZE)
+
+    const uboBuffer = this._gl.createBuffer()
+    this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboBuffer)
+    this._gl.bufferData(this._gl.UNIFORM_BUFFER, blockSize, this._gl.DYNAMIC_DRAW)
+    this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
+    this._gl.bindBufferBase(this._gl.UNIFORM_BUFFER, bindingPoint, uboBuffer)
+
+    const uboVariableIndices = this._gl.getUniformIndices(program, uniforms)
+    const uboVariableOffsets = this._gl.getActiveUniforms(program, uboVariableIndices, this._gl.UNIFORM_OFFSET)
+
+    const uboVariableInfo: UBOUniformInfo = {}
+    uniforms.forEach((name, index) => {
+      uboVariableInfo[name] = {
+        index: uboVariableIndices[index],
+        offset: uboVariableOffsets[index],
+      }
+    })
+    this._gl.uniformBlockBinding(program, blockIndex, bindingPoint)
+
+    const setter = (variableGetter: (i: number) => any) => {
+      this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboBuffer)
+      uniforms.forEach((name, i) => {
+        this._gl.bufferSubData(this._gl.UNIFORM_BUFFER, uboVariableInfo[name].offset, variableGetter(i), 0)
+      })
+      this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
+    }
+
+    return setter
   }
 
   public createTexture(w: number, h: number, { type, data = null, filter = 'NEAREST', wrap = 'REPEAT' }: TextureOpts) {
@@ -302,7 +351,7 @@ export default class GL_Handler {
     0x8C1A: { constant: 'TEXTURE_2D_ARRAY'                           , setterFn: null},
   }
 
-  /* TODO
+  /* TODO: Attribute Setters
   private attrTypeMap: TypeMap = {
     0x1406: { constant: 'FLOAT'                                      , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1f(loc, val)},
     0x8B50: { constant: 'FLOAT_VEC2'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2fv(loc, val)},
