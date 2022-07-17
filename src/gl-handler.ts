@@ -194,6 +194,7 @@ export default class GL_Handler {
     const fb = this._gl.createFramebuffer()
     this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, fb)
     this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, tex, 0)
+    this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null)
     return fb
   }
 
