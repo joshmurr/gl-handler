@@ -165,23 +165,13 @@ export default class GL_Handler {
     })
     this._gl.uniformBlockBinding(program, blockIndex, bindingPoint)
 
-    //const setter = (variableGetter: (i: number) => any) => {
-    //this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboBuffer)
-    //uniforms.forEach((name, i) => {
-    //this._gl.bufferSubData(this._gl.UNIFORM_BUFFER, uboVariableInfo[name].offset, variableGetter(i), 0)
-    //})
-    //this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
-    //}
-
-    //return setter
-
-    return { uniforms, desc: uboVariableInfo, buffer: uboBuffer }
+    return { uniforms, info: uboVariableInfo, buffer: uboBuffer }
   }
 
   public setUBO(uboDesc: UBODesc, variableGetter: (i: number) => Float32Array) {
     this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboDesc.buffer)
     uboDesc.uniforms.forEach((name, i) => {
-      this._gl.bufferSubData(this._gl.UNIFORM_BUFFER, uboDesc.desc[name].offset, variableGetter(i), 0)
+      this._gl.bufferSubData(this._gl.UNIFORM_BUFFER, uboDesc.info[name].offset, variableGetter(i), 0)
     })
     this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
   }
@@ -259,8 +249,6 @@ export default class GL_Handler {
 
     return mat4.perspective(mat4.create(), fieldOfView, aspect, zNear, zFar)
   }
-
-  //public
 
   public get gl(): WebGL2RenderingContext {
     return this._gl
