@@ -283,6 +283,15 @@ export default class GL_Handler {
     }
   }
 
+  public enumToString(value: number) {
+    for (let key in this._gl) {
+      if (this._gl[key] === value) {
+        return key
+      }
+    }
+    return `0x${value.toString(16)}`
+  }
+
   //prettier-ignore
   private typeMap: TypeMap = {
     0x84c0: { constant: 'TEXTURE0'                                   , setterFn: null},
