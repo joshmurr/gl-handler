@@ -1,7 +1,7 @@
 import { GL_Handler, Quad, Types as T } from 'gl-handler'
 import { vec3, mat4 } from 'gl-matrix'
 
-document.body.style.backgroundColor = 'grey'
+document.body.style.backgroundColor = 'black'
 
 const vert = `#version 300 es
 precision mediump float;
@@ -34,26 +34,26 @@ const fluidFrag = `#version 300 es
 
   vec4 Energy;
 
+#define LOOKUP(COORD) texture(u_Texture,(COORD)/u_Resolution.xy)
 
-
-  vec4 Field (vec2 position) {
+vec4 Field (vec2 position) {
     // Rule 1 : All My Energy transates with my ordered Energy
-    vec2 velocityGuess = texture(u_Texture, position / u_Resolution).xy;// / u_Resolution;;
+    vec2 velocityGuess = LOOKUP (position).xy;
     vec2 positionGuess = position - velocityGuess;
-    return texture(u_Texture, positionGuess / u_Resolution);
-  }
-
+	return LOOKUP (positionGuess);
+}
 
   void main(){
-    vec2 uv = gl_FragCoord.xy;// / u_Resolution;
+    vec2 Me = gl_FragCoord.xy;
 
-    Energy  =  Field(uv);
+    Energy  =  Field(Me);
     // Neighborhood :
-    vec4 pX  =  Field(uv +(vec2(1,0)));
-    vec4 pY  =  Field(uv +(vec2(0,1)));
-    vec4 nX  =  Field(uv -(vec2(1,0)));
-    vec4 nY  =  Field(uv -(vec2(0,1)));
-
+    vec4 pX  =  Field(Me + vec2(1,0));
+    vec4 pY  =  Field(Me + vec2(0,1));
+    vec4 nX  =  Field(Me - vec2(1,0));
+    vec4 nY  =  Field(Me - vec2(0,1));
+    
+    // Rule 2 : Disordered Energy diffuses completely :
     Energy.b = (pX.b + pY.b + nX.b + nY.b)/4.0;
     
     // Rule 3 : Order in the disordered Energy creates Order :
@@ -66,22 +66,21 @@ const fluidFrag = `#version 300 es
     Energy.b += (nX.x - pX.x + nY.y - pY.y)/4.;
     
     // Gravity effect :
-    Energy.y -= Energy.w/300.0;
+    Energy.x -= Energy.w/300.0;
     
     // Mass concervation :
     Energy.w += (nX.x*nX.w-pX.x*pX.w+nY.y*nY.w-pY.y*pY.w)/4.;
-
+    
     //Boundary conditions :
-    if(uv.x<1.||uv.y<1.||u_Resolution.x-uv.x<1.||u_Resolution.y-uv.y<1.)
+    if(Me.x<10.||Me.y<10.||u_Resolution.x-Me.x<10.||u_Resolution.y-Me.y<10.)
     {
     	Energy.xy *= 0.;
     }
-
-    if (u_Mouse.z > 0. && length(u_Mouse.xy - gl_FragCoord.xy) < 50.) {
-      Energy = vec4(1.,0.,0.,1.);
+    // Mouse input  :  
+    if (u_Mouse.z > 0. && length(Me-u_Mouse.xy) < 10.) {
+        Energy.w = 1.;
     }
-
-      Energy = vec4(1.,1.,0.,1.);
+      //Energy = vec4(1.,1.,0.,1.);
 		outcolor = Energy;
   }
 `
@@ -95,7 +94,7 @@ uniform sampler2D u_Texture;
 out vec4 OUTCOLOUR;
 
 void main(){
-    OUTCOLOUR = texture(u_Texture, v_TexCoord);
+    OUTCOLOUR = texture(u_Texture, v_TexCoord).wwww;
 }`
 
 const G = new GL_Handler()
@@ -104,6 +103,8 @@ const gl = G.gl
 const program = G.shaderProgram(vert, fluidFrag)
 const render = G.shaderProgram(vert, outputFrag)
 const ext = gl.getExtension('EXT_color_buffer_float')
+
+if (!ext) console.error("Your browser does not support the extension 'EXT_color_buffer_float'")
 
 let baseViewMat = G.viewMat({ pos: vec3.fromValues(0, 0, 2) })
 const projMat = G.defaultProjMat()
@@ -126,15 +127,25 @@ const quadB = new Quad(gl)
 quadA.linkProgram(program)
 quadB.linkProgram(render)
 
+const fillTex = (w: number, h: number, pix: number[]) => {
+  const data = []
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < w; y++) {
+      data.push(...pix)
+    }
+  }
+  return new Float32Array(data)
+}
+
 const texA = G.createTexture(res.x, res.y, {
   type: 'RGBA16F',
   filter: 'LINEAR',
-  data: new Float32Array(res.x * res.y * 4).fill(0),
+  data: fillTex(res.x, res.y, [0, 0, 0, 255]),
 })
 const texB = G.createTexture(res.x, res.y, {
   type: 'RGBA16F',
   filter: 'LINEAR',
-  data: new Float32Array(res.x * res.y * 4).fill(0),
+  data: null,
 })
 
 const textures = [texA, texB]
@@ -143,7 +154,6 @@ let frame = 0
 
 gl.bindTexture(gl.TEXTURE_2D, null)
 const fbo = G.createFramebuffer(texB)
-//gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 // UNIFORMS ---------------------------
 const baseUniforms: T.UniformDescs = {
@@ -159,7 +169,7 @@ const renderUniforms: T.UniformDescs = {
 const renderSetters = G.getUniformSetters(render)
 // ------------------------------------
 
-function draw(time: number) {
+function draw() {
   let a = frame % 2
   let b = (frame + 1) % 2
 
@@ -172,7 +182,7 @@ function draw(time: number) {
   G.setUniforms(uniformSetters, {
     ...baseUniforms,
     u_Resolution: [res.x, res.y],
-    u_Mouse: [MOUSE.x, MOUSE.y, MOUSE.click],
+    u_Mouse: [MOUSE.y, MOUSE.x, MOUSE.click],
     u_Texture: textures[a],
   })
   gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
@@ -180,7 +190,8 @@ function draw(time: number) {
   gl.useProgram(render)
   gl.bindVertexArray(quadB.VAO)
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-  //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.bindTexture(gl.TEXTURE_2D, textures[b])
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
   G.setUniforms(renderSetters, {
     ...renderUniforms,
@@ -189,8 +200,6 @@ function draw(time: number) {
     u_Texture: textures[b],
   })
   gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
-
-  //tex_pair.swap()
 
   gl.bindVertexArray(null)
   gl.bindBuffer(gl.ARRAY_BUFFER, null)
@@ -213,8 +222,5 @@ canvas.addEventListener('mousemove', function (e) {
 
 window.addEventListener('mousedown', () => {
   MOUSE.click = 1
-
-  //frame++
-  //requestAnimationFrame(draw)
 })
 window.addEventListener('mouseup', () => (MOUSE.click = 0))
