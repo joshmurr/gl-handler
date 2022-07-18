@@ -1,4 +1,4 @@
-import { GL_Handler, Quad, Types as T, constants } from 'gl-handler'
+import { GL_Handler, Quad, Types as T } from 'gl-handler'
 import { vec3, mat4 } from 'gl-matrix'
 
 const vert = `#version 300 es
@@ -14,18 +14,20 @@ uniform mat4 u_ModelMatrix;
 out vec2 v_TexCoord;
 
 void main(){
-    gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix * vec4(i_Position, 1.0);
-    v_TexCoord = i_TexCoord;
+  gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix * vec4(i_Position, 1.0);
+  v_TexCoord = i_TexCoord;
 }`
 
 const colourFrag = `#version 300 es
 precision mediump float;
 
 uniform vec2 u_Resolution;
+uniform float u_Frame;
 out vec4 OUTCOLOUR;
 
 void main(){
-    OUTCOLOUR = vec4(gl_FragCoord.xy / u_Resolution, 0.0, 1.0);
+    float f = u_Frame * 0.01;
+    OUTCOLOUR = vec4(gl_FragCoord.xy / u_Resolution * abs(vec2(sin(f), cos(f))), cos(f), 1.0);
 }`
 
 const outputFrag = `#version 300 es
@@ -37,7 +39,7 @@ uniform sampler2D u_Texture;
 out vec4 OUTCOLOUR;
 
 void main(){
-    OUTCOLOUR = texture(u_Texture, v_TexCoord);
+  OUTCOLOUR = texture(u_Texture, v_TexCoord);
 }`
 
 const G = new GL_Handler()
@@ -54,12 +56,15 @@ const quadA = new Quad(gl)
 const quadB = new Quad(gl)
 quadA.linkProgram(program)
 quadB.linkProgram(render)
+quadB.translate = [0, 0, -4]
+quadB.rotate = { speed: 0.0005, axis: [1, 1, 1] }
 
-const res = { x: 64, y: 64 }
+const res = { x: 16, y: 16 }
 const renderTex = G.createTexture(res.x, res.y, {
   type: 'RGBA',
   filter: 'NEAREST',
 })
+
 const fbo = G.createFramebuffer(renderTex)
 gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
@@ -81,6 +86,8 @@ const renderSetters = G.getUniformSetters(render)
 gl.useProgram(program)
 G.setUniforms(uniformSetters, baseUniforms)
 
+let frame = 0
+
 function draw(time: number) {
   gl.useProgram(program)
   gl.bindVertexArray(quadA.VAO)
@@ -89,24 +96,32 @@ function draw(time: number) {
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo)
   gl.viewport(0, 0, res.x, res.y)
-  G.setUniforms(uniformSetters, { ...baseUniforms, u_Resolution: [res.x, res.y] })
+  G.setUniforms(uniformSetters, {
+    ...baseUniforms,
+    u_Frame: frame,
+    u_Resolution: [res.x, res.y],
+  })
   gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
 
   gl.useProgram(render)
   gl.bindVertexArray(quadB.VAO)
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  gl.bindTexture(gl.TEXTURE_2D, renderTex)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+
   G.setUniforms(renderSetters, {
     ...renderUniforms,
-    u_ViewMatrix: G.viewMat({ pos: vec3.fromValues(Math.sin(time * 0.002) * 2, 1, 4) }),
+    u_ModelMatrix: quadB.updateModelMatrix(time),
   })
-  gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
+  gl.drawElements(gl.TRIANGLES, quadB.numIndices, gl.UNSIGNED_SHORT, 0)
 
+  gl.bindTexture(gl.TEXTURE_2D, null)
   gl.bindVertexArray(null)
   gl.bindBuffer(gl.ARRAY_BUFFER, null)
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
 
+  frame++
   requestAnimationFrame(draw)
 }
 
