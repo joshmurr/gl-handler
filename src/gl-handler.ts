@@ -41,6 +41,33 @@ export default class GL_Handler {
     return canvas
   }
 
+  public backing(canvas: HTMLCanvasElement, colour: string, targetEl: HTMLElement | null = null) {
+    const wrapper = document.createElement('div')
+    wrapper.style.position = 'relative'
+
+    const backing = document.createElement('canvas')
+    backing.width = canvas.width
+    backing.height = canvas.height
+    backing.style.position = 'absolute'
+    backing.style.top = '0'
+    backing.style.left = '0'
+    const backingCtx = backing.getContext('2d')
+    backingCtx.fillStyle = colour
+    backingCtx.fillRect(0, 0, backing.width, backing.height)
+
+    canvas.style.position = 'absolute'
+    canvas.style.top = '0'
+    canvas.style.left = '0'
+
+    wrapper.appendChild(backing)
+    wrapper.appendChild(canvas)
+
+    const target = targetEl || document.body
+    target.prepend(wrapper)
+
+    return backing
+  }
+
   public shaderProgram(vsSource: string, fsSource: string, tfVaryings: string[] | null = null): WebGLProgram | null {
     const shaderProgram = this._gl.createProgram()
     const vertexShader = this.loadShader(this._gl.VERTEX_SHADER, vsSource)
