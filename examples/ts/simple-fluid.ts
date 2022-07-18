@@ -1,7 +1,10 @@
+/* Original simple fluid shader by Wyatt Flanders.
+ * ShaderToy: https://www.shadertoy.com/view/WtsSz2
+ * More info: http://wyattflanders.com/MeAndMyNeighborhood.pdf
+ */
+
 import { GL_Handler, Quad, Types as T } from 'gl-handler'
 import { vec3, mat4 } from 'gl-matrix'
-
-//document.body.style.backgroundColor = 'black'
 
 const vert = `#version 300 es
 precision mediump float;
