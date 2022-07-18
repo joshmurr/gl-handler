@@ -1,7 +1,7 @@
 import { GL_Handler, Quad, Types as T } from 'gl-handler'
 import { vec3, mat4 } from 'gl-matrix'
 
-document.body.style.backgroundColor = 'black'
+//document.body.style.backgroundColor = 'black'
 
 const vert = `#version 300 es
 precision mediump float;
@@ -21,84 +21,90 @@ void main(){
 }`
 
 const fluidFrag = `#version 300 es
-  precision mediump float;
-  precision mediump sampler2D;
+precision mediump float;
+precision mediump sampler2D;
 
 
-  uniform vec2 u_Resolution;
-  uniform float u_frame;
-	uniform sampler2D u_Texture;
-  uniform vec3 u_Mouse;
+uniform vec2 u_resolution;
+uniform float u_frame;
+uniform sampler2D u_texture;
+uniform vec3 u_mouse;
 
-  out vec4 outcolor;
+out vec4 outcolor;
 
-  vec4 Energy;
+vec4 Energy;
 
-#define LOOKUP(COORD) texture(u_Texture,(COORD)/u_Resolution.xy)
+#define LOOKUP(COORD) texture(u_texture,(COORD)/u_resolution.xy)
 
 vec4 Field (vec2 position) {
-    // Rule 1 : All My Energy transates with my ordered Energy
-    vec2 velocityGuess = LOOKUP (position).xy;
-    vec2 positionGuess = position - velocityGuess;
-	return LOOKUP (positionGuess);
+  // Rule 1 : All My Energy transates with my ordered Energy
+  vec2 velocityGuess = LOOKUP (position).xy;
+  vec2 positionGuess = position - velocityGuess;
+  return LOOKUP (positionGuess);
 }
 
-  void main(){
-    vec2 Me = gl_FragCoord.xy;
+void main(){
+  vec2 Me = gl_FragCoord.xy;
 
-    Energy  =  Field(Me);
-    // Neighborhood :
-    vec4 pX  =  Field(Me + vec2(1,0));
-    vec4 pY  =  Field(Me + vec2(0,1));
-    vec4 nX  =  Field(Me - vec2(1,0));
-    vec4 nY  =  Field(Me - vec2(0,1));
-    
-    // Rule 2 : Disordered Energy diffuses completely :
-    Energy.b = (pX.b + pY.b + nX.b + nY.b)/4.0;
-    
-    // Rule 3 : Order in the disordered Energy creates Order :
-    vec2 Force;
-    Force.x = nX.b - pX.b;
-    Force.y = nY.b - pY.b;
-    Energy.xy += Force/4.0;
-    
-    // Rule 4 : Disorder in the ordered Energy creates Disorder :
-    Energy.b += (nX.x - pX.x + nY.y - pY.y)/4.;
-    
-    // Gravity effect :
-    Energy.x -= Energy.w/300.0;
-    
-    // Mass concervation :
-    Energy.w += (nX.x*nX.w-pX.x*pX.w+nY.y*nY.w-pY.y*pY.w)/4.;
-    
-    //Boundary conditions :
-    if(Me.x<10.||Me.y<10.||u_Resolution.x-Me.x<10.||u_Resolution.y-Me.y<10.)
-    {
-    	Energy.xy *= 0.;
-    }
-    // Mouse input  :  
-    if (u_Mouse.z > 0. && length(Me-u_Mouse.xy) < 10.) {
-        Energy.w = 1.;
-    }
-      //Energy = vec4(1.,1.,0.,1.);
-		outcolor = Energy;
+  Energy  =  Field(Me);
+  // Neighborhood :
+  vec4 pX  =  Field(Me + vec2(1,0));
+  vec4 pY  =  Field(Me + vec2(0,1));
+  vec4 nX  =  Field(Me - vec2(1,0));
+  vec4 nY  =  Field(Me - vec2(0,1));
+  
+  // Rule 2 : Disordered Energy diffuses completely :
+  Energy.b = (pX.b + pY.b + nX.b + nY.b)/4.0;
+  
+  // Rule 3 : Order in the disordered Energy creates Order :
+  vec2 Force;
+  Force.x = nX.b - pX.b;
+  Force.y = nY.b - pY.b;
+  Energy.xy += Force/4.0;
+  
+  // Rule 4 : Disorder in the ordered Energy creates Disorder :
+  Energy.b += (nX.x - pX.x + nY.y - pY.y)/4.;
+  
+  // Gravity effect :
+  Energy.x -= Energy.w/300.0;
+  
+  // Mass concervation :
+  Energy.w += (nX.x*nX.w-pX.x*pX.w+nY.y*nY.w-pY.y*pY.w)/4.;
+  
+  //Boundary conditions :
+  if(Me.x<1.||Me.y<1.||u_resolution.x-Me.x<1.||u_resolution.y-Me.y<1.)
+  {
+    Energy.xy *= 0.;
   }
+  // Mouse input  :  
+  if (u_mouse.z > 0. && length(Me-u_mouse.xy) < 10.) {
+      Energy.w = 1.;
+  }
+  if(u_frame < 10.) {
+    Energy = vec4(0.,0.,0.,0.);
+    if(length(u_resolution / 2.0 - Me) < 90.) {
+      Energy.w = 1.;
+    }
+  }
+  outcolor = Energy;
+}
 `
 
 const outputFrag = `#version 300 es
 precision mediump float;
 
 in vec2 v_TexCoord;
-uniform sampler2D u_Texture;
+uniform sampler2D u_texture;
 
 out vec4 OUTCOLOUR;
 
 void main(){
-    OUTCOLOUR = texture(u_Texture, v_TexCoord).wwww;
+    OUTCOLOUR = texture(u_texture, v_TexCoord).wwww;
 }`
 
 const G = new GL_Handler()
 const canvas = G.canvas(512, 512)
+G.backing(canvas, 'black')
 const gl = G.gl
 const program = G.shaderProgram(vert, fluidFrag)
 const render = G.shaderProgram(vert, outputFrag)
@@ -127,20 +133,10 @@ const quadB = new Quad(gl)
 quadA.linkProgram(program)
 quadB.linkProgram(render)
 
-const fillTex = (w: number, h: number, pix: number[]) => {
-  const data = []
-  for (let x = 0; x < w; x++) {
-    for (let y = 0; y < w; y++) {
-      data.push(...pix)
-    }
-  }
-  return new Float32Array(data)
-}
-
 const texA = G.createTexture(res.x, res.y, {
   type: 'RGBA16F',
   filter: 'LINEAR',
-  data: fillTex(res.x, res.y, [0, 0, 0, 255]),
+  data: null,
 })
 const texB = G.createTexture(res.x, res.y, {
   type: 'RGBA16F',
@@ -181,9 +177,10 @@ function draw() {
   gl.viewport(0, 0, res.x, res.y)
   G.setUniforms(uniformSetters, {
     ...baseUniforms,
-    u_Resolution: [res.x, res.y],
-    u_Mouse: [MOUSE.y, MOUSE.x, MOUSE.click],
-    u_Texture: textures[a],
+    u_resolution: [res.x, res.y],
+    u_mouse: [MOUSE.y, MOUSE.x, MOUSE.click],
+    u_frame: frame,
+    u_texture: textures[a],
   })
   gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
 
@@ -196,8 +193,8 @@ function draw() {
   G.setUniforms(renderSetters, {
     ...renderUniforms,
     u_ViewMatrix: G.viewMat({ pos: vec3.fromValues(0, 0, 3) }),
-    u_Resolution: [canvas.width, canvas.height],
-    u_Texture: textures[b],
+    u_resolution: [canvas.width, canvas.height],
+    u_texture: textures[b],
   })
   gl.drawElements(gl.TRIANGLES, quadA.numIndices, gl.UNSIGNED_SHORT, 0)
 
