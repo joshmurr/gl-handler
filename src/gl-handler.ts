@@ -11,11 +11,13 @@ import {
   UBOOpts,
   UBOUniformInfo,
   UBODesc,
+  TextureUnitMap,
 } from './types'
 import { constants } from './constants'
 
 export default class GL_Handler {
   private _gl: WebGL2RenderingContext
+  private _textureUnitMap: TextureUnitMap = []
 
   public canvas(
     width: number,
@@ -115,15 +117,16 @@ export default class GL_Handler {
       if (name.endsWith('[0]')) {
         name = name.substring(0, name.length - 3)
       }
-      const location = this._gl.getUniformLocation(program, uniformInfo.name)
+      const location = this._gl.getUniformLocation(program, name)
 
       // the uniform will have no location if it's in a uniform block
       if (!location) continue
 
       const { constant, setterFn } = this.typeMap[uniformInfo.type]
 
-      const setter = setterFn(this._gl)
+      if (constant === 'SAMPLER_2D') this._textureUnitMap.push(name)
 
+      const setter = setterFn(this._gl)
       setters[name] = {
         location,
         constant,
@@ -166,7 +169,7 @@ export default class GL_Handler {
       const values = uniforms[name]
       if (!setters[name]) continue // Uniform was not found in shader
       const { location, setter } = setters[name]
-      setter(location, values)
+      setter(location, values, name)
     }
   }
 
@@ -207,7 +210,7 @@ export default class GL_Handler {
     const texture = this._gl.createTexture()
     this._gl.bindTexture(this._gl.TEXTURE_2D, texture)
     /* Run texImage2D and load data */
-    this.textureLoader[type](this._gl, w, h, data)
+    if (type) this.textureLoader[type](this._gl, w, h, data)
     /* Set MIN/MAG filter stuff */
     this.filterLoader[filter](this._gl)
     /* Texture wrapping */
@@ -290,13 +293,12 @@ export default class GL_Handler {
     return this._gl.canvas.clientWidth / this._gl.canvas.clientHeight
   }
 
-  private samplerSetter(gl: WebGL2RenderingContext, loc: WebGLUniformLocation, texture: WebGLTexture) {
-    return () => {
-      const unit = 0
-      gl.uniform1i(loc, unit)
-      gl.activeTexture(gl.TEXTURE0 + unit)
-      gl.bindTexture(gl.TEXTURE_2D, texture)
-    }
+  private samplerSetter(gl: WebGL2RenderingContext, loc: WebGLUniformLocation, texture: WebGLTexture, name: string) {
+    const unit = this._textureUnitMap.indexOf(name)
+    //console.log(`${name}: ${unit}`)
+    gl.uniform1i(loc, unit)
+    gl.activeTexture(gl.TEXTURE0 + unit)
+    gl.bindTexture(gl.TEXTURE_2D, texture)
   }
 
   public initReadPixels(width: number, height: number) {
@@ -356,7 +358,7 @@ export default class GL_Handler {
     0x8B5A: { constant: 'FLOAT_MAT2'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2fv(loc, false, val)},
     0x8B5B: { constant: 'FLOAT_MAT3'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3fv(loc, false, val)},
     0x8B5C: { constant: 'FLOAT_MAT4'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4fv(loc, false, val)},
-    0x8B5E: { constant: 'SAMPLER_2D'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, texture: WebGLTexture) => this.samplerSetter(gl, loc, texture)},
+    0x8B5E: { constant: 'SAMPLER_2D'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, texture: WebGLTexture, name: string) => this.samplerSetter(gl, loc, texture, name)},
     0x8B60: { constant: 'SAMPLER_CUBE'                               , setterFn: null},
     0x8B5F: { constant: 'SAMPLER_3D'                                 , setterFn: null},
     0x8B62: { constant: 'SAMPLER_2D_SHADOW'                          , setterFn: null},
