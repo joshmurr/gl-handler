@@ -1,4 +1,8 @@
-import LA_Trance from './LA_trance.mp3'
+/* Demo from the boss man Greggman:
+ * https://webglfundamentals.org/webgl/lessons/webgl-qna-how-to-get-audio-data-into-a-shader.html
+ * Sample from: https://samplelib.com/sample-mp3.html
+ */
+import sample from './sample-15s.mp3'
 import { GL_Handler, ShaderToy, Types as T } from 'gl-handler'
 
 const vert = `#version 300 es
@@ -19,7 +23,7 @@ out vec4 OUTCOLOUR;
 
 void main(){
   vec2 uv = gl_FragCoord.xy / u_resolution;
-  float fft = texture2D(audioData, vec2(uv.x * 0.25, 0)).r;
+  float fft = texture(u_audioData, vec2(uv.x * 0.25, 0)).r;
   OUTCOLOUR = vec4(uv * pow(fft, 5.0), 0, 1);
 }`
 
@@ -32,6 +36,8 @@ const shaderToy = new ShaderToy(gl)
 shaderToy.linkProgram(program)
 
 function start() {
+  console.log('Starting Audio demo')
+
   const context = new AudioContext()
   const analyser = context.createAnalyser()
 
@@ -49,21 +55,18 @@ function start() {
   // ------------------------------------
 
   // AUDIO ------------------------------
-  // Make a audio node
   const audio = new Audio()
   audio.loop = true
   audio.autoplay = true
-  // call `handleCanplay` when it music can be played
   audio.addEventListener('canplay', handleCanplay)
-  audio.src = LA_Trance
+  audio.src = sample
   audio.load()
 
   function handleCanplay() {
-    // connect the audio element to the analyser node and the analyser node
-    // to the main Web Audio context
     const source = context.createMediaElementSource(audio)
     source.connect(analyser)
     analyser.connect(context.destination)
+    console.log(audio)
   }
   // ------------------------------------
 
@@ -98,4 +101,7 @@ function start() {
 
     requestAnimationFrame(draw)
   }
+  requestAnimationFrame(draw)
 }
+
+document.addEventListener('click', start)
