@@ -72,7 +72,7 @@ export interface Camera {
 }
 
 export interface TextureOpts {
-  type: string
+  type?: string
   data?: Uint8Array | Float32Array | null
   filter?: string
   wrap?: string
@@ -87,4 +87,6 @@ export interface UBOOpts {
 
 export type UBOUniformInfo = { [key: string]: { index: number; offset: number } }
 
-export type UBODesc = { uniforms: string[]; desc: UBOUniformInfo; buffer: WebGLBuffer }
+export type UBODesc = { uniforms: string[]; info: UBOUniformInfo; buffer: WebGLBuffer }
+
+export type TextureUnitMap = string[]
