@@ -147,13 +147,11 @@ export default class GL_Handler {
 
       const name = attribInfo.name
       const location = this._gl.getAttribLocation(program, attribInfo.name)
-
       if (!location) continue
 
-      const { constant, setterFn } = this.typeMap[attribInfo.type]
+      const { constant, setterFn } = this.attrTypeMap[attribInfo.type]
 
       const setter = setterFn(this._gl)
-
       setters[name] = {
         location,
         constant,
@@ -295,7 +293,6 @@ export default class GL_Handler {
 
   private samplerSetter(gl: WebGL2RenderingContext, loc: WebGLUniformLocation, texture: WebGLTexture, name: string) {
     const unit = this._textureUnitMap.indexOf(name)
-    //console.log(`${name}: ${unit}`)
     gl.uniform1i(loc, unit)
     gl.activeTexture(gl.TEXTURE0 + unit)
     gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -389,28 +386,28 @@ export default class GL_Handler {
     0x8C1A: { constant: 'TEXTURE_2D_ARRAY'                           , setterFn: null},
   }
 
-  /* TODO: Attribute Setters
+  //  TODO: Attribute Setters
+  // prettier-ignore
   private attrTypeMap: TypeMap = {
-    0x1406: { constant: 'FLOAT'                                      , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1f(loc, val)},
-    0x8B50: { constant: 'FLOAT_VEC2'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2fv(loc, val)},
-    0x8B51: { constant: 'FLOAT_VEC3'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3fv(loc, val)},
-    0x8B52: { constant: 'FLOAT_VEC4'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4fv(loc, val)},
-    0x1404: { constant: 'INT'                                        , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1i(loc, val) },
-    0x8B53: { constant: 'INT_VEC2'                                   , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2iv(loc, val)},
-    0x8B54: { constant: 'INT_VEC3'                                   , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3iv(loc, val)},
-    0x8B55: { constant: 'INT_VEC4'                                   , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4iv(loc, val)},
-    0x8B56: { constant: 'BOOL'                                       , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1i(loc, val) },
-    0x8B57: { constant: 'BOOL_VEC2'                                  , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2iv(loc, val)},
-    0x8B58: { constant: 'BOOL_VEC3'                                  , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3iv(loc, val)},
-    0x8B59: { constant: 'BOOL_VEC4'                                  , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4iv(loc, val)},
-    0x8B5A: { constant: 'FLOAT_MAT2'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2fv(loc, false, val)},
-    0x8B5B: { constant: 'FLOAT_MAT3'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3fv(loc, false, val)},
-    0x8B5C: { constant: 'FLOAT_MAT4'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4fv(loc, false, val)},
+    0x1406: { constant: 'FLOAT'                                      , setterFn: null},
+    0x8B50: { constant: 'FLOAT_VEC2'                                 , setterFn: null},
+    0x8B51: { constant: 'FLOAT_VEC3'                                 , setterFn: null},
+    0x8B52: { constant: 'FLOAT_VEC4'                                 , setterFn: null},
+    0x1404: { constant: 'INT'                                        , setterFn: null},
+    0x8B53: { constant: 'INT_VEC2'                                   , setterFn: null},
+    0x8B54: { constant: 'INT_VEC3'                                   , setterFn: null},
+    0x8B55: { constant: 'INT_VEC4'                                   , setterFn: null},
+    0x8B56: { constant: 'BOOL'                                       , setterFn: null},
+    0x8B57: { constant: 'BOOL_VEC2'                                  , setterFn: null},
+    0x8B58: { constant: 'BOOL_VEC3'                                  , setterFn: null},
+    0x8B59: { constant: 'BOOL_VEC4'                                  , setterFn: null},
+    0x8B5A: { constant: 'FLOAT_MAT2'                                 , setterFn: null},
+    0x8B5B: { constant: 'FLOAT_MAT3'                                 , setterFn: null},
+    0x8B5C: { constant: 'FLOAT_MAT4'                                 , setterFn: null},
     0x8DC6: { constant: 'UNSIGNED_INT_VEC2'                          , setterFn: null},
     0x8DC7: { constant: 'UNSIGNED_INT_VEC3'                          , setterFn: null},
     0x8DC8: { constant: 'UNSIGNED_INT_VEC4'                          , setterFn: null},
   }
-  */
 
   //prettier-ignore
   private textureLoader: TextureTypeMap = {
