@@ -233,21 +233,57 @@ export default class GL_Handler {
     depthBuffer: WebGLRenderbuffer,
   ) {
     this._gl.bindTexture(this._gl.TEXTURE_2D, targetTex)
+    const level = 0
+    const border = 0
+    const data = null
     this._gl.texImage2D(
       this._gl.TEXTURE_2D,
-      0,
+      level,
       this._gl.RGBA,
       width,
       height,
-      0,
+      border,
       this._gl.RGBA,
       this._gl.UNSIGNED_BYTE,
-      null,
+      data,
     )
 
     this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, depthBuffer)
     this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_COMPONENT16, width, height)
   }
+
+  public initPicking() {
+    // Create a texture to render to
+    const targetTexture = this._gl.createTexture()
+    this._gl.bindTexture(this._gl.TEXTURE_2D, targetTexture)
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR)
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE)
+    this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE)
+
+    // create a depth renderbuffer
+    const depthBuffer = this._gl.createRenderbuffer()
+    this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, depthBuffer)
+
+    // Create and bind the framebuffer
+    const fb = this._gl.createFramebuffer()
+    this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, fb)
+
+    // attach the texture as the first color attachment
+    const attachmentPoint = this._gl.COLOR_ATTACHMENT0
+    const level = 0
+    this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, attachmentPoint, this._gl.TEXTURE_2D, targetTexture, level)
+
+    // make a depth buffer and the same size as the targetTexture
+    this._gl.framebufferRenderbuffer(
+      this._gl.FRAMEBUFFER,
+      this._gl.DEPTH_ATTACHMENT,
+      this._gl.RENDERBUFFER,
+      depthBuffer,
+    )
+
+    return { fb, targetTexture, depthBuffer }
+  }
+
   public createStreamBuffer(data: Float32Array): WebGLBuffer {
     const buffer = this._gl.createBuffer()
     this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer)
@@ -303,8 +339,8 @@ export default class GL_Handler {
     const type = this._gl.getParameter(this._gl.IMPLEMENTATION_COLOR_READ_TYPE)
     const pixelSize = constants[format] === 'RGBA' ? 4 : 3
     const pixels = new Uint8Array(width * height * pixelSize)
-    return () => {
-      this._gl.readPixels(0, 0, width, height, format, type, pixels)
+    return (x: number, y: number) => {
+      this._gl.readPixels(x, y, width, height, format, type, pixels)
       return pixels
     }
   }
