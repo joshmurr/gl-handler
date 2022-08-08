@@ -450,6 +450,7 @@ export default class GL_Handler {
     RGB      : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB,  w, h, 0, gl.RGB,  gl.UNSIGNED_BYTE, data),
     RGBA     : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data),
     RGBA16F  : (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.FLOAT, data),
+    R32F     : (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, w, h, 0, gl.RED, gl.FLOAT, data),
     RGBA32F  : (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, data),
     LUMINANCE: (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, w, h, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data)
   }
