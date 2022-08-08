@@ -30,6 +30,7 @@ export interface UniformDesc<T> {
 
 export interface RotationDesc {
   speed: number
+  angle: number
   axis: [number, number, number]
 }
 

@@ -8,8 +8,9 @@ export default abstract class Geometry {
   _indexedGeometry = false
   _uniformsNeedsUpdate = false
   _translate: [number, number, number] = [0.0, 0.0, 0.0]
-  _rotation: RotationDesc = { speed: 0, axis: [0, 0, 0] }
+  _rotation: RotationDesc = { speed: 0, angle: 0, axis: [0, 0, 0] }
   _oscillate = false
+  _animate = false
 
   _verts: number[]
   _numVertComponents: number
@@ -104,15 +105,20 @@ export default abstract class Geometry {
 
   public set rotate(speedAxis: RotationDesc) {
     this._uniformsNeedsUpdate = true
-    const [s, r] = Object.values(speedAxis)
-    this._rotation.speed = s
-    this._rotation.axis[0] = r[0]
-    this._rotation.axis[1] = r[1]
-    this._rotation.axis[2] = r[2]
+    const { speed, angle, axis } = speedAxis
+    this._rotation.speed = speed
+    this._rotation.angle = angle
+    this._rotation.axis[0] = axis[0]
+    this._rotation.axis[1] = axis[1]
+    this._rotation.axis[2] = axis[2]
   }
 
   public set oscillate(val: boolean) {
     if (typeof val === 'boolean') this._oscillate = val
+  }
+
+  public set animate(val: boolean) {
+    if (typeof val === 'boolean') this._animate = val
   }
 
   public get needsUpdate() {
@@ -123,12 +129,10 @@ export default abstract class Geometry {
     mat4.identity(this._modelMatrix)
     const translation = vec3.fromValues(...this._translate)
     mat4.translate(this._modelMatrix, this._modelMatrix, translation)
-    mat4.rotate(
-      this._modelMatrix,
-      this._modelMatrix,
-      (this._oscillate ? Math.sin(_time * 0.001) * 90 : _time) * this._rotation.speed,
-      this._rotation.axis,
-    )
+    const angle = this._animate
+      ? (this._oscillate ? Math.sin(_time * 0.001) * 90 : _time) * this._rotation.speed
+      : this._rotation.angle
+    mat4.rotate(this._modelMatrix, this._modelMatrix, angle, this._rotation.axis)
 
     return this._modelMatrix
   }
