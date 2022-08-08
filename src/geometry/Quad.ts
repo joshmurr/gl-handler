@@ -12,7 +12,7 @@ export default class Quad extends Geometry {
     this._indices = [0, 2, 1, 0, 3, 2]
   }
 
-  linkProgram(_program: WebGLShader) {
+  linkProgram(_program: WebGLProgram) {
     this._buffers.push(this.gl.createBuffer(), this.gl.createBuffer(), this.gl.createBuffer())
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._buffers[0])
