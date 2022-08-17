@@ -91,3 +91,7 @@ export type UBOUniformInfo = { [key: string]: { index: number; offset: number } 
 export type UBODesc = { uniforms: string[]; info: UBOUniformInfo; buffer: WebGLBuffer }
 
 export type TextureUnitMap = string[]
+
+export type T2 = [number, number]
+export type T3 = [number, number, number]
+export type T4 = [number, number, number, number]
