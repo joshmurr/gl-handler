@@ -77,7 +77,7 @@ export default abstract class Geometry {
   }
 
   public get numVertices() {
-    return this._verts.length / this._numVertComponents || 3
+    return this._verts.length / (this._numVertComponents || 3)
   }
 
   public get verts() {
