@@ -4,13 +4,13 @@ import { vec3, mat4 } from 'gl-matrix'
 export default class PointSphere extends Geometry {
   _numPoints: number
 
-  constructor(gl: WebGL2RenderingContext, _numPoints: number) {
+  constructor(gl: WebGL2RenderingContext, numPoints: number) {
     super(gl)
 
     this._verts = []
-    this._numPoints = _numPoints
+    this._numPoints = numPoints
     // Generate random vertices on the unit sphere
-    for (let i = 0; i < _numPoints; i++) {
+    for (let i = 0; i < numPoints; i++) {
       const u = Math.random() * Math.PI * 2
       const v = Math.random() * Math.PI * 2
       this._verts.push(Math.sin(u) * Math.cos(v), Math.sin(u) * Math.sin(v), Math.cos(u))
@@ -94,7 +94,8 @@ const modelMat = mat4.create()
 
 const points = new PointSphere(gl, 10000)
 points.linkProgram(pointsProgram)
-points.rotate = { speed: 0.0005, axis: [1, 1, 1] }
+points.rotate = { speed: 0.0005, angle: 0, axis: [1, 1, 1] }
+points.animate = true
 
 const baseUniforms: Types.UniformDescs = {
   u_ModelMatrix: modelMat,
