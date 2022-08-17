@@ -7,7 +7,9 @@ module.exports = {
     //pointSphere: './ts/point-sphere.ts',
     //renderToTexture: './ts/render-to-texture.ts',
     //simpleFluid: './ts/simple-fluid.ts',
-    shaderToy: './ts/shaderToy.ts',
+    //shaderToy: './ts/shaderToy.ts',
+    //audio: './ts/audio.ts',
+    cameraControls: './ts/camera-control.ts',
   },
   devtool: 'inline-source-map',
   devServer: {
@@ -30,6 +32,10 @@ module.exports = {
             transpileOnly: true,
           },
         },
+      },
+      {
+        test: /\.mp3$/,
+        loader: 'file-loader',
       },
     ],
   },
