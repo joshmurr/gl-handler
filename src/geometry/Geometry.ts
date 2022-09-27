@@ -18,8 +18,8 @@ export default abstract class Geometry {
   _normals: number[]
   _colors: number[]
   _texCoords: number[]
-  _buffers: Array<WebGLBuffer> = []
-  _VAOs: Array<WebGLVertexArrayObject> = []
+  _buffers: WebGLBuffer[] = []
+  _VAOs: WebGLVertexArrayObject[] = []
 
   _modelMatrix = mat4.create()
 
@@ -34,7 +34,7 @@ export default abstract class Geometry {
 
   protected abstract linkProgram(_program: WebGLProgram, _renderProgram?: WebGLProgram): void
 
-  public setupVAO(_buffers: Array<BufferDesc>, _VAO: WebGLVertexArrayObject) {
+  public setupVAO(_buffers: BufferDesc[], _VAO: WebGLVertexArrayObject) {
     this.gl.bindVertexArray(_VAO)
 
     _buffers.map((buffer) => {
@@ -50,12 +50,12 @@ export default abstract class Geometry {
           attrib_desc.location,
           attrib_desc.num_components,
           attrib_desc.type,
-          false, //normalize
+          false, // normalize
           buffer.stride,
           offset,
         )
         offset += attrib_desc.num_components * attrib_desc.size
-        if (attrib_desc['divisor']) {
+        if (attrib_desc.divisor) {
           this.gl.vertexAttribDivisor(attrib_desc.location, attrib_desc.divisor)
         }
       }
@@ -138,7 +138,7 @@ export default abstract class Geometry {
   }
 
   public updateInverseModelMatrix() {
-    mat4.invert(this._uniforms['u_InverseModelMatrix'].value as mat4, this._uniforms['u_ModelMatrix'].value as mat4)
+    mat4.invert(this._uniforms.u_InverseModelMatrix.value as mat4, this._uniforms.u_ModelMatrix.value as mat4)
   }
 
   public normalizeEachVert() {
@@ -153,7 +153,7 @@ export default abstract class Geometry {
   public normalizeVerts(_verts: number[]) {
     let min = Number.POSITIVE_INFINITY
     let max = Number.NEGATIVE_INFINITY
-    const vectors: Array<vec3> = []
+    const vectors: vec3[] = []
     for (let i = 0; i < _verts.length; i += 3) {
       const v = vec3.fromValues(_verts[i], _verts[i + 1], _verts[i + 2])
       vectors.push(v)

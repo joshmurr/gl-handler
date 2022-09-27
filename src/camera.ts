@@ -53,14 +53,14 @@ export default class Camera {
 
   arcball() {
     if (!this._mousedown) return
-    let pos = vec4.fromValues(...(this._viewOpts.pos as T3), 1) as T4
+    const pos = vec4.fromValues(...(this._viewOpts.pos as T3), 1) as T4
     const pivot = vec4.fromValues(...(this._viewOpts.target as T3), 1) as T4
 
-    let dThetaX = (2 * Math.PI) / window.innerWidth
+    const dThetaX = (2 * Math.PI) / window.innerWidth
     let dThetaY = Math.PI / window.innerHeight
 
-    let thetaX = this._dMouseX * dThetaX * 0.5
-    let thetaY = this._dMouseY * dThetaY * 0.5
+    const thetaX = this._dMouseX * dThetaX * 0.5
+    const thetaY = this._dMouseY * dThetaY * 0.5
 
     const appUp = vec3.fromValues(0, 1, 0)
 
