@@ -130,7 +130,7 @@ export default class GL_Handler {
       setters[name] = {
         location,
         constant,
-        setter: setter,
+        setter,
       }
     }
 
@@ -155,7 +155,7 @@ export default class GL_Handler {
       setters[name] = {
         location,
         constant,
-        setter: setter,
+        setter,
       }
     }
 
@@ -172,8 +172,8 @@ export default class GL_Handler {
   }
 
   public createUBO({ program, name, uniforms, bindingPoint }: UBOOpts): UBODesc {
-    let blockIndex = this._gl.getUniformBlockIndex(program, name)
-    let blockSize = this._gl.getActiveUniformBlockParameter(program, blockIndex, this._gl.UNIFORM_BLOCK_DATA_SIZE)
+    const blockIndex = this._gl.getUniformBlockIndex(program, name)
+    const blockSize = this._gl.getActiveUniformBlockParameter(program, blockIndex, this._gl.UNIFORM_BLOCK_DATA_SIZE)
 
     const uboBuffer = this._gl.createBuffer()
     this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboBuffer)
@@ -346,7 +346,7 @@ export default class GL_Handler {
   }
 
   public enumToString(value: number) {
-    for (let key in this._gl) {
+    for (const key in this._gl) {
       if (this._gl[key] === value) {
         return key
       }
@@ -354,7 +354,7 @@ export default class GL_Handler {
     return `0x${value.toString(16)}`
   }
 
-  //prettier-ignore
+  // prettier-ignore
   private typeMap: TypeMap = {
     0x84c0: { constant: 'TEXTURE0'                                   , setterFn: null},
     0x88e8: { constant: 'DYNAMIC_DRAW'                               , setterFn: null},
@@ -445,7 +445,7 @@ export default class GL_Handler {
     0x8DC8: { constant: 'UNSIGNED_INT_VEC4'                          , setterFn: null},
   }
 
-  //prettier-ignore
+  // prettier-ignore
   private textureLoader: TextureTypeMap = {
     RGB      : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB,  w, h, 0, gl.RGB,  gl.UNSIGNED_BYTE, data),
     RGBA     : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data),

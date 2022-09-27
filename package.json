@@ -9,8 +9,8 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "npx eslint src/",
-    "lint:dry-run": "npx eslint src/ --fix-dry-run",
-    "lint:fix": "npx eslint src/ --fix"
+    "lint:dry-run": "npx eslint --fix-dry-run src/",
+    "lint:fix": "npx eslint --fix src/"
   },
   "repository": {
     "type": "git",
