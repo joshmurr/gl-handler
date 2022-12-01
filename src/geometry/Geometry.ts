@@ -1,6 +1,6 @@
 import { vec3, mat4 } from 'gl-matrix'
 
-import { AllAttribDesc, BufferDesc, RotationDesc, UniformDesc } from '../types'
+import { BufferDesc, RotationDesc, UniformDesc } from '../types'
 
 export default abstract class Geometry {
   gl: WebGL2RenderingContext
@@ -41,9 +41,9 @@ export default abstract class Geometry {
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.buffer_object)
       let offset = 0
 
-      let attrib: keyof AllAttribDesc
-      for (attrib in buffer.attributes) {
-        const attribDesc = buffer.attributes[attrib]
+      /* let attrib: keyof AllAttribDesc */
+      for (const attribDesc of Object.values(buffer.attributes)) {
+        /* const attribDesc = buffer.attributes[attrib] */
         if (attribDesc.location < 0) continue
         this.gl.enableVertexAttribArray(attribDesc.location)
         this.gl.vertexAttribPointer(
@@ -163,7 +163,7 @@ export default abstract class Geometry {
       max = Math.max(l, max)
     }
     const scale = 1 / max
-    const newVerts = new Array(_verts.length)
+    const newVerts = new Array<number>(_verts.length)
     for (let i = 0; i < vectors.length; i++) {
       const v = vectors[i]
       vec3.scale(v, v, scale)
@@ -214,7 +214,7 @@ export default abstract class Geometry {
   }
 
   protected calcIndices(): number[] {
-    const indices = []
+    const indices: number[] = []
     for (let i = 0; i < this._verts.length; i += 3) {
       const idx = i / 3
       if (idx > 1) indices.push(idx - 1)

@@ -3,9 +3,9 @@ import { vec3, mat4 } from 'gl-matrix'
 export type WGL2RC = WebGL2RenderingContext
 
 export interface AttribDesc {
-  location: number // Attrib loc
+  location: GLenum // Attrib loc
   num_components: number
-  type: number // GLENUM
+  type: GLenum // GLENUM
   size: number
   divisor?: number
 }
@@ -21,7 +21,7 @@ export interface AllAttribDesc {
 export interface BufferDesc {
   buffer_object: WebGLBuffer
   stride: number
-  attributes: AllAttribDesc
+  attributes: {[key: string]: AttribDesc}
 }
 
 export interface UniformDesc<T> {
