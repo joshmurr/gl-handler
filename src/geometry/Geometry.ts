@@ -43,20 +43,20 @@ export default abstract class Geometry {
 
       let attrib: keyof AllAttribDesc
       for (attrib in buffer.attributes) {
-        const attrib_desc = buffer.attributes[attrib]
-        if (attrib_desc.location < 0) continue
-        this.gl.enableVertexAttribArray(attrib_desc.location)
+        const attribDesc = buffer.attributes[attrib]
+        if (attribDesc.location < 0) continue
+        this.gl.enableVertexAttribArray(attribDesc.location)
         this.gl.vertexAttribPointer(
-          attrib_desc.location,
-          attrib_desc.num_components,
-          attrib_desc.type,
+          attribDesc.location,
+          attribDesc.num_components,
+          attribDesc.type,
           false, // normalize
           buffer.stride,
           offset,
         )
-        offset += attrib_desc.num_components * attrib_desc.size
-        if (attrib_desc.divisor) {
-          this.gl.vertexAttribDivisor(attrib_desc.location, attrib_desc.divisor)
+        offset += attribDesc.num_components * attribDesc.size
+        if (attribDesc.divisor) {
+          this.gl.vertexAttribDivisor(attribDesc.location, attribDesc.divisor)
         }
       }
     })
