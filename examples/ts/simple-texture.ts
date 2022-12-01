@@ -63,8 +63,6 @@ const uniforms: T.UniformDescs = {
 
 const uniformSetters = G.getUniformSetters(render)
 
-console.log(uniformSetters)
-
 gl.useProgram(render)
 G.setUniforms(uniformSetters, uniforms)
 gl.bindVertexArray(quad.VAO)

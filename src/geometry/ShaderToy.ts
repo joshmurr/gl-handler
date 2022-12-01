@@ -23,7 +23,7 @@ export default class ShaderToy extends Geometry {
       },
     }
     this._VAOs.push(this.gl.createVertexArray())
-    const VAO_desc = [
+    const VAODesc = [
       {
         vao: this._VAOs[0],
         buffers: [
@@ -36,6 +36,6 @@ export default class ShaderToy extends Geometry {
       },
     ]
 
-    VAO_desc.forEach((VAO) => this.setupVAO(VAO.buffers, VAO.vao))
+    VAODesc.forEach((VAO) => this.setupVAO(VAO.buffers, VAO.vao))
   }
 }
