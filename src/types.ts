@@ -1,5 +1,7 @@
 import { vec3, mat4 } from 'gl-matrix'
 
+export type WGL2RC = WebGL2RenderingContext
+
 export interface AttribDesc {
   location: number // Attrib loc
   num_components: number
@@ -38,14 +40,19 @@ export type UniformDescs = {
   [key: string]: number | number[] | mat4 | vec3 | WebGLTexture
 }
 
+type SetterFn<T extends any[]> = (loc: WebGLUniformLocation, ...args: T) => void
+
+type WrappedSetterFn = (gl: WGL2RC) => SetterFn<any>
+
 export interface TypeInfo {
   constant: string
-  setterFn?: any
+  setterFn?: WrappedSetterFn
 }
 
-export interface Setter extends TypeInfo {
+export interface Setter {
   location: WebGLUniformLocation | number
-  setter: any
+  constant: string
+  setter: SetterFn<any>
 }
 
 export type Setters = {

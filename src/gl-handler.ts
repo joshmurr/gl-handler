@@ -12,11 +12,12 @@ import {
   UBOUniformInfo,
   UBODesc,
   TextureUnitMap,
+  WGL2RC
 } from './types'
 import { constants } from './constants'
 
 export default class GL_Handler {
-  private _gl: WebGL2RenderingContext
+  private _gl: WGL2RC
   private _textureUnitMap: TextureUnitMap = []
 
   public canvas(
@@ -37,7 +38,7 @@ export default class GL_Handler {
     })
 
     if (!this._gl) {
-      console.warn("You're browser does not support WebGL 2.0. Soz.")
+      console.warn("You're browser does not support WebGL 2.0. Soz.") /* eslint-disable-line */
       return
     }
     return canvas
@@ -105,7 +106,7 @@ export default class GL_Handler {
   }
 
   public getUniformSetters(program: WebGLProgram): Setters {
-    const numUniforms = this._gl.getProgramParameter(program, this._gl.ACTIVE_UNIFORMS)
+    const numUniforms = this._gl.getProgramParameter(program, this._gl.ACTIVE_UNIFORMS) as number
 
     const setters: Setters = {}
 
@@ -138,7 +139,7 @@ export default class GL_Handler {
   }
 
   public getAttributeSetters(program: WebGLProgram): Setters {
-    const numAttribs = this._gl.getProgramParameter(program, this._gl.ACTIVE_ATTRIBUTES)
+    const numAttribs = this._gl.getProgramParameter(program, this._gl.ACTIVE_ATTRIBUTES) as number
 
     const setters: Setters = {}
 
@@ -163,8 +164,7 @@ export default class GL_Handler {
   }
 
   public setUniforms(setters: Setters, uniforms: UniformDescs): void {
-    for (const name in uniforms) {
-      const values = uniforms[name]
+    for (const [name, values] of Object.entries(uniforms)) {
       if (!setters[name]) continue // Uniform was not found in shader
       const { location, setter } = setters[name]
       setter(location, values, name)
@@ -173,7 +173,7 @@ export default class GL_Handler {
 
   public createUBO({ program, name, uniforms, bindingPoint }: UBOOpts): UBODesc {
     const blockIndex = this._gl.getUniformBlockIndex(program, name)
-    const blockSize = this._gl.getActiveUniformBlockParameter(program, blockIndex, this._gl.UNIFORM_BLOCK_DATA_SIZE)
+    const blockSize = this._gl.getActiveUniformBlockParameter(program, blockIndex, this._gl.UNIFORM_BLOCK_DATA_SIZE) as number
 
     const uboBuffer = this._gl.createBuffer()
     this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboBuffer)
@@ -181,12 +181,12 @@ export default class GL_Handler {
     this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, null)
     this._gl.bindBufferBase(this._gl.UNIFORM_BUFFER, bindingPoint, uboBuffer)
 
-    const uboVariableIndices = this._gl.getUniformIndices(program, uniforms)
-    const uboVariableOffsets = this._gl.getActiveUniforms(program, uboVariableIndices, this._gl.UNIFORM_OFFSET)
+    const uboVariableIndices = this._gl.getUniformIndices(program, uniforms) as number[]
+    const uboVariableOffsets = this._gl.getActiveUniforms(program, uboVariableIndices, this._gl.UNIFORM_OFFSET) as number[]
 
     const uboVariableInfo: UBOUniformInfo = {}
-    uniforms.forEach((name, index) => {
-      uboVariableInfo[name] = {
+    uniforms.forEach((uniform, index) => {
+      uboVariableInfo[uniform] = {
         index: uboVariableIndices[index],
         offset: uboVariableOffsets[index],
       }
@@ -235,7 +235,7 @@ export default class GL_Handler {
     this._gl.bindTexture(this._gl.TEXTURE_2D, targetTex)
     const level = 0
     const border = 0
-    const data = null
+    const data: ArrayBufferView = null
     this._gl.texImage2D(
       this._gl.TEXTURE_2D,
       level,
@@ -315,11 +315,11 @@ export default class GL_Handler {
     return mat4.perspective(mat4.create(), fieldOfView, aspect, zNear, zFar)
   }
 
-  public get gl(): WebGL2RenderingContext {
+  public get gl(): WGL2RC {
     return this._gl
   }
 
-  public set gl(gl: WebGL2RenderingContext) {
+  public set gl(gl: WGL2RC) {
     this._gl = gl
   }
 
@@ -327,7 +327,7 @@ export default class GL_Handler {
     return this._gl.canvas.clientWidth / this._gl.canvas.clientHeight
   }
 
-  private samplerSetter(gl: WebGL2RenderingContext, loc: WebGLUniformLocation, texture: WebGLTexture, name: string) {
+  private samplerSetter(gl: WGL2RC, loc: WebGLUniformLocation, texture: WebGLTexture, name: string): void {
     const unit = this._textureUnitMap.indexOf(name)
     gl.uniform1i(loc, unit)
     gl.activeTexture(gl.TEXTURE0 + unit)
@@ -335,8 +335,8 @@ export default class GL_Handler {
   }
 
   public initReadPixels(width: number, height: number) {
-    const format = this._gl.getParameter(this._gl.IMPLEMENTATION_COLOR_READ_FORMAT)
-    const type = this._gl.getParameter(this._gl.IMPLEMENTATION_COLOR_READ_TYPE)
+    const format = this._gl.getParameter(this._gl.IMPLEMENTATION_COLOR_READ_FORMAT) as GLenum
+    const type = this._gl.getParameter(this._gl.IMPLEMENTATION_COLOR_READ_TYPE) as GLenum
     const pixelSize = constants[format] === 'RGBA' ? 4 : 3
     const pixels = new Uint8Array(width * height * pixelSize)
     return (x: number, y: number) => {
@@ -376,31 +376,31 @@ export default class GL_Handler {
     0x8a46: { constant: 'UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER', setterFn: null},
     0x8a40: { constant: 'UNIFORM_BLOCK_DATA_SIZE'                    , setterFn: null},
     0x8a43: { constant: 'UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES'       , setterFn: null},
-    0x1406: { constant: 'FLOAT'                                      , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1f(loc, val)},
-    0x8B50: { constant: 'FLOAT_VEC2'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2fv(loc, val)},
-    0x8B51: { constant: 'FLOAT_VEC3'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3fv(loc, val)},
-    0x8B52: { constant: 'FLOAT_VEC4'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4fv(loc, val)},
-    0x1404: { constant: 'INT'                                        , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1i(loc, val) },
-    0x8B53: { constant: 'INT_VEC2'                                   , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2iv(loc, val)},
-    0x8B54: { constant: 'INT_VEC3'                                   , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3iv(loc, val)},
-    0x8B55: { constant: 'INT_VEC4'                                   , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4iv(loc, val)},
-    0x8B56: { constant: 'BOOL'                                       , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1i(loc, val) },
-    0x8B57: { constant: 'BOOL_VEC2'                                  , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2iv(loc, val)},
-    0x8B58: { constant: 'BOOL_VEC3'                                  , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3iv(loc, val)},
-    0x8B59: { constant: 'BOOL_VEC4'                                  , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4iv(loc, val)},
-    0x8B5A: { constant: 'FLOAT_MAT2'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2fv(loc, false, val)},
-    0x8B5B: { constant: 'FLOAT_MAT3'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3fv(loc, false, val)},
-    0x8B5C: { constant: 'FLOAT_MAT4'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4fv(loc, false, val)},
-    0x8B5E: { constant: 'SAMPLER_2D'                                 , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, texture: WebGLTexture, name: string) => this.samplerSetter(gl, loc, texture, name)},
+    0x1406: { constant: 'FLOAT'                                      , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1f(loc, val)},
+    0x8B50: { constant: 'FLOAT_VEC2'                                 , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2fv(loc, val)},
+    0x8B51: { constant: 'FLOAT_VEC3'                                 , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3fv(loc, val)},
+    0x8B52: { constant: 'FLOAT_VEC4'                                 , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4fv(loc, val)},
+    0x1404: { constant: 'INT'                                        , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1i(loc, val) },
+    0x8B53: { constant: 'INT_VEC2'                                   , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2iv(loc, val)},
+    0x8B54: { constant: 'INT_VEC3'                                   , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3iv(loc, val)},
+    0x8B55: { constant: 'INT_VEC4'                                   , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4iv(loc, val)},
+    0x8B56: { constant: 'BOOL'                                       , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number  ) => gl.uniform1i(loc, val) },
+    0x8B57: { constant: 'BOOL_VEC2'                                  , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform2iv(loc, val)},
+    0x8B58: { constant: 'BOOL_VEC3'                                  , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform3iv(loc, val)},
+    0x8B59: { constant: 'BOOL_VEC4'                                  , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniform4iv(loc, val)},
+    0x8B5A: { constant: 'FLOAT_MAT2'                                 , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2fv(loc, false, val)},
+    0x8B5B: { constant: 'FLOAT_MAT3'                                 , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3fv(loc, false, val)},
+    0x8B5C: { constant: 'FLOAT_MAT4'                                 , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4fv(loc, false, val)},
+    0x8B5E: { constant: 'SAMPLER_2D'                                 , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, texture: WebGLTexture, name: string) => this.samplerSetter(gl, loc, texture, name)},
     0x8B60: { constant: 'SAMPLER_CUBE'                               , setterFn: null},
     0x8B5F: { constant: 'SAMPLER_3D'                                 , setterFn: null},
     0x8B62: { constant: 'SAMPLER_2D_SHADOW'                          , setterFn: null},
-    0x8B65: { constant: 'FLOAT_MAT2x3'                               , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2x3fv(loc, false, val)},
-    0x8B66: { constant: 'FLOAT_MAT2x4'                               , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2x4fv(loc, false, val)},
-    0x8B67: { constant: 'FLOAT_MAT3x2'                               , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3x2fv(loc, false, val)},
-    0x8B68: { constant: 'FLOAT_MAT3x4'                               , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3x4fv(loc, false, val)},
-    0x8B69: { constant: 'FLOAT_MAT4x2'                               , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4x2fv(loc, false, val)},
-    0x8B6A: { constant: 'FLOAT_MAT4x3'                               , setterFn: (gl: WebGL2RenderingContext) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4x3fv(loc, false, val)},
+    0x8B65: { constant: 'FLOAT_MAT2x3'                               , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2x3fv(loc, false, val)},
+    0x8B66: { constant: 'FLOAT_MAT2x4'                               , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix2x4fv(loc, false, val)},
+    0x8B67: { constant: 'FLOAT_MAT3x2'                               , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3x2fv(loc, false, val)},
+    0x8B68: { constant: 'FLOAT_MAT3x4'                               , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix3x4fv(loc, false, val)},
+    0x8B69: { constant: 'FLOAT_MAT4x2'                               , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4x2fv(loc, false, val)},
+    0x8B6A: { constant: 'FLOAT_MAT4x3'                               , setterFn: (gl: WGL2RC) => (loc: WebGLUniformLocation, val: number[]) => gl.uniformMatrix4x3fv(loc, false, val)},
     0x8DC1: { constant: 'SAMPLER_2D_ARRAY'                           , setterFn: null},
     0x8DC4: { constant: 'SAMPLER_2D_ARRAY_SHADOW'                    , setterFn: null},
     0x8DC5: { constant: 'SAMPLER_CUBE_SHADOW'                        , setterFn: null},
@@ -447,35 +447,36 @@ export default class GL_Handler {
 
   // prettier-ignore
   private textureLoader: TextureTypeMap = {
-    RGB      : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB,  w, h, 0, gl.RGB,  gl.UNSIGNED_BYTE, data),
-    RGBA     : (gl: WebGL2RenderingContext, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data),
-    RGBA16F  : (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.FLOAT, data),
-    R32F     : (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, w, h, 0, gl.RED, gl.FLOAT, data),
-    RGBA32F  : (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, data),
-    LUMINANCE: (gl: WebGL2RenderingContext, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, w, h, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data)
+    R8       : (gl: WGL2RC, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8,  w, h, 0, gl.RED,  gl.UNSIGNED_BYTE, data),
+    RGB      : (gl: WGL2RC, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB,  w, h, 0, gl.RGB,  gl.UNSIGNED_BYTE, data),
+    RGBA     : (gl: WGL2RC, w: number, h: number, data: Uint8Array | Float32Array): void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data),
+    RGBA16F  : (gl: WGL2RC, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.FLOAT, data),
+    R32F     : (gl: WGL2RC, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, w, h, 0, gl.RED, gl.FLOAT, data),
+    RGBA32F  : (gl: WGL2RC, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, data),
+    LUMINANCE: (gl: WGL2RC, w: number, h: number, data: Float32Array | null)      : void => gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, w, h, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data)
   }
 
   private filterLoader: FilterMap = {
-    NEAREST: (gl: WebGL2RenderingContext): void => {
+    NEAREST: (gl: WGL2RC): void => {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
     },
-    LINEAR: (gl: WebGL2RenderingContext): void => {
+    LINEAR: (gl: WGL2RC): void => {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
     },
   }
 
   private wrapLoader: WrapMap = {
-    CLAMP_TO_EDGE: (gl: WebGL2RenderingContext): void => {
+    CLAMP_TO_EDGE: (gl: WGL2RC): void => {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     },
-    REPEAT: (gl: WebGL2RenderingContext): void => {
+    REPEAT: (gl: WGL2RC): void => {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
     },
-    MIRRORED_REPEAT: (gl: WebGL2RenderingContext): void => {
+    MIRRORED_REPEAT: (gl: WGL2RC): void => {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT)
     },
