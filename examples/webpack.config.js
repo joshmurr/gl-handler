@@ -4,12 +4,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 module.exports = {
   mode: 'development',
   entry: {
-    //pointSphere: './ts/point-sphere.ts',
-    //renderToTexture: './ts/render-to-texture.ts',
-    //simpleFluid: './ts/simple-fluid.ts',
-    //shaderToy: './ts/shaderToy.ts',
-    //audio: './ts/audio.ts',
-    cameraControls: './ts/camera-control.ts',
+    // pointSphere: './ts/point-sphere.ts',
+    // renderToTexture: './ts/render-to-texture.ts',
+    // simpleFluid: './ts/simple-fluid.ts',
+    // shaderToy: './ts/shaderToy.ts',
+    // audio: './ts/audio.ts',
+    /* cameraControls: './ts/camera-control.ts', */
+    simpleTexture: './ts/simple-texture.ts'
   },
   devtool: 'inline-source-map',
   devServer: {
