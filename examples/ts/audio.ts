@@ -66,7 +66,6 @@ function start() {
     const source = context.createMediaElementSource(audio)
     source.connect(analyser)
     analyser.connect(context.destination)
-    console.log(audio)
   }
   // ------------------------------------
 

@@ -1,5 +1,5 @@
 import { GL_Handler, Camera, Geometry, Types } from 'gl-handler'
-import { vec3, vec4, mat4 } from 'gl-matrix'
+import { vec3, mat4 } from 'gl-matrix'
 
 export default class PointSphere extends Geometry {
   _numPoints: number
@@ -113,11 +113,15 @@ gl.clearDepth(1.0)
 gl.enable(gl.CULL_FACE)
 gl.enable(gl.DEPTH_TEST)
 
+console.log(C.viewMat)
+
 function draw(time: number) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.clearColor(0.9, 0.9, 0.9, 1)
 
   C.arcball()
+  C.translate(0.0012)
+  console.log(C.pos)
 
   G.setUniforms(uniformSetters, {
     ...baseUniforms,
