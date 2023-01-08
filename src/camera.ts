@@ -1,5 +1,5 @@
 import { vec3, vec4, mat4 } from 'gl-matrix'
-import { T3 } from './types'
+import { T3, T4 } from './types'
 
 interface CameraOpts {
   pos?: vec3
