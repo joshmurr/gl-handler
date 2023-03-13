@@ -24,7 +24,7 @@ export default class Quad extends Geometry {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this._texCoords), this.gl.STATIC_DRAW)
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null)
 
-    const positionAttrib: {[key:string]: AttribDesc }= {
+    const positionAttrib: { [key: string]: AttribDesc } = {
       i_Position: {
         location: this.gl.getAttribLocation(_program, 'i_Position'),
         num_components: 3,

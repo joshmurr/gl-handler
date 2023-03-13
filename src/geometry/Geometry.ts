@@ -34,6 +34,11 @@ export default abstract class Geometry {
 
   protected abstract linkProgram(_program: WebGLProgram, _renderProgram?: WebGLProgram): void
 
+  destroy() {
+    this._buffers.forEach((buf) => this.gl.deleteBuffer(buf))
+    /* this._VAOs.forEach((VAO) => this.gl.deleteVertexArray(VAO)) */
+  }
+
   public setupVAO(_buffers: BufferDesc[], _VAO: WebGLVertexArrayObject) {
     this.gl.bindVertexArray(_VAO)
 
